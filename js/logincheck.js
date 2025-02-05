@@ -3,8 +3,20 @@ async function checkLogin() {
     var username = document.getElementById("uname").value;
     var email = document.getElementById("email").value;
 
-    const logRequest = new Request(loginUrl, {body: {name: username, email: email}, method: "POST"});
-    logRequest.credentials = "include";
-
-    const response = await fetch(logRequest);
+    const response = await fetch(loginUrl, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            name: username,
+            email: email
+        }),
+        method: "POST",
+    })
+    .then (response => response.json());
+    if (response.status == "ok") {
+        localStorage.setItem("token", response.token);
+    } else {
+        document.getElementById("loginresult").innerHTML = "Invalid name or email";
+    }
 }
