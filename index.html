@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My GitHub Page</title>
+
 </head>
 <body>
 <h1>Testing initial Github page function</h1>
-<form action="https://frontend-take-home-service.fetch.com/auth/login"method="post">
+<script type="text/javascript" src="js/logincheck.js"></script>
+<form method="post" onsubmit="checkLogin()">
     <div class="container">
         <label for="uname"><b>Name</b></label>
         <input type="text" placeholder="Enter Name" name="uname" required>
@@ -16,9 +18,6 @@
         <input type="email" placeholder="Enter Email" name="email" required>
     
         <button type="submit">Login</button>
-        <label>
-          <input type="checkbox" checked="checked" name="remember"> Remember me
-        </label>
         <label name="loginresult"></label>
       </div>
 </form>
