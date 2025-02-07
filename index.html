@@ -4,21 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My GitHub Page</title>
-
+<script type="text/javascript" src="js/logincheck.js"></script>
 </head>
 <body>
 <h1>Testing initial Github page function</h1>
-<script type="text/javascript" src="js/logincheck.js"></script>
 <form>
     <div class="container">
         <label for="uname"><b>Name</b></label>
-        <input type="text" placeholder="Enter Name" name="uname" required>
+        <input type="text" placeholder="Enter Name" id="uname" required>
     
         <label for="email"><b>Email</b></label>
-        <input type="email" placeholder="Enter Email" name="email" required>
+        <input type="email" placeholder="Enter Email" id="email" required>
     
-        <button type="button" onclick="checkLogin()">Stringify</button>
-        <label name="loginresult"></label>
+        <button onclick="checkLogin()">Login</button>
       </div>
 </form>
 </body>
