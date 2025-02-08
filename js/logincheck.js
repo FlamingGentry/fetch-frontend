@@ -15,6 +15,7 @@ async function checkLogin() {
     .then (response => response.json());
     if (response.status == "ok") {
         localStorage.setItem("token", response.headers.getSetCookie("fetch-access-token"));
+        document.getElementById("loginresult").innerHTML = "Token acquired";
         window.location.href = "searchpage.html";
     } else {
         document.getElementById("loginresult").innerHTML = "Invalid name or email";
