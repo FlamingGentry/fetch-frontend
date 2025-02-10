@@ -5,6 +5,8 @@ async function checkLogin() {
     const response = await fetch(loginUrl, {
         headers: {
             "Content-Type": "application/json",
+            "Cache-Control": "max-age=600",
+            "X-Content-Type-Options": "nosniff",
         },
         body: JSON.stringify({
             name: username,
