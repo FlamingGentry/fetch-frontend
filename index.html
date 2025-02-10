@@ -10,7 +10,7 @@
     <script type="text/javascript" src="js/logincheck.js"></script>
     <h1>Testing initial Github page function</h1>
     <p id="loginresult">Please Login</p>
-    <form>
+    <form id="loginForm">
         <div class="container">
             <label for="uname"><b>Name</b></label>
             <input type="text" placeholder="Enter Name" id="uname" required>
@@ -18,7 +18,7 @@
             <label for="email"><b>Email</b></label>
             <input type="text" placeholder="Enter Email" id="email" required>
         
-            <input type="button" id="submitBtn" onclick="checkLogin()">Login</button>
+            <button type="submit" onclick="checkLogin()">Login</button>
         </div>
     </form>
 </body>
