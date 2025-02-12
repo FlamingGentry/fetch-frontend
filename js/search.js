@@ -1,23 +1,9 @@
-async function getDogBreeds() {
-    const breedUrl = "https://frontend-take-home-service.fetch.com/dogs/breeds";
-    const breedRes = await fetch(breedUrl, {
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": localStorage.getItem("token")
-        },
-        method: "GET",
-        credentials: "include",
-    })
-    .then (response => response.json());
-    return response;
-}
 async function searchDogs() {
     const dogUrl = "https://frontend-take-home-service.fetch.com/dogs/search";
     const response = await fetch(dogUrl, {
         headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiTmljayBEb3duaW5nIiwiZW1haWwiOiJuaWNrZG93bmluZzk3QGdtYWlsLmNvbSIsImlhdCI6MTczOTI5ODI5NCwiZXhwIjoxNzM5MzAxODk0fQ.HbJJcCxVyGdoMBOkMn1RF1-c2tJ2xFKfPBfytgFKQaE"
-            //"Authorization": localStorage.getItem("token")
+            "Authorization": "Bearer "  + localStorage.getItem("token")
         },
         method: "GET",
         credentials: "include",
