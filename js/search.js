@@ -2,8 +2,7 @@ async function searchDogs() {
     const dogUrl = "https://frontend-take-home-service.fetch.com/dogs/search";
     const response = await fetch(dogUrl, {
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer "  + localStorage.getItem("token")
+            "Content-Type": "application/json"
         },
         method: "GET",
         credentials: "include",
