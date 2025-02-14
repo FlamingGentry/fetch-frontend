@@ -21,7 +21,7 @@
             <button type="submit">Login</button>
         </div>
     </form>
-    <form id="searchForm" style="display:none;">
+    <form id="searchForm">
         <div class="container" id="searchbox">
             <table id="searchTable">
                 <tr class="header">
@@ -53,8 +53,8 @@
     });
     const result = await response;
     if (result.status == 200) {
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("searchForm").style.display = "block";
+        //document.getElementById("loginForm").style.display = "none";
+        //document.getElementById("searchForm").style.display = "block";
     } else {
         document.getElementById("loginresult").innerHTML = "Invalid name or email";
     }
@@ -87,13 +87,13 @@
         return row;
     }
 
-    async function fillTableContent() {
-        const dogData = await searchDogs();
+    function fillTableContent() {
+        const dogData = searchDogs();
         const table = document.getElementById("searchtable");
         for (const dog of dogData) {
             table.appendChild(createRow(dog));
         }
     }
     document.getElementById('loginForm').addEventListener('submit', checkLogin);
-    document.getElementById('searchForm').addEventListener('submit', searchDogs);
+    document.getElementById('searchForm').addEventListener('submit', fillTableContent);
 </script>
