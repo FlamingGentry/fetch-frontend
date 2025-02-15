@@ -78,6 +78,25 @@
         return result.json();
     }
 
+    async function getDogData(dogIdArray){
+        const dogUrl = "https://frontend-take-home-service.fetch.com/dogs";
+        const response = await fetch(dogUrl, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache': 'no-cache'
+            },
+            method: 'POST',
+            credentials: 'include',
+            body: JSON.stringify(dogIdArray)
+        })
+        const result = await response;
+        if (result.status !== 200) {
+            throw new Error("Failed to fetch data");
+        }
+        return result.json();
+
+    }
+
     function createRow(dogData){
         const row = document.createElement("tr");
         const keys = Object.keys(dogData);
@@ -91,9 +110,10 @@
 
     function fillTableContent(event) {
         event.preventDefault();
-        const dogData = searchDogs();
+        const dogArray = searchDogs().resultIds;
+        const dogData = getDogData(dogArray);
         const table = document.getElementById("searchtable");
-        for (const dog of dogData) {
+        for (const dog of dogArray) {
             table.appendChild(createRow(dog));
         }
     }
