@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="js/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+
     <title>Fetch Login</title>
 
 </head>
@@ -23,22 +27,41 @@
     </form>
     <form id="searchForm">
         <div class="container" id="searchbox">
-            <table id="searchTable">
-                <tr class="header">
-                  <th>Image</th>
-                  <th>Name</th>
-                  <th>Age</th>
-                  <th>Zip Code</th>
-                  <th>Breed</th>
-                </tr>
-                <tr></tr>
-              </table>
-              <button type="submit">Search</button>
+            <table id="searchTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Zip Code</th>
+                        <th>Breed</th>
+                      </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>img</td>
+                        <td>A Dog</td>
+                        <td>99</td>
+                        <td>11111</td>
+                        <td>Dog</td>
+                    </tr>
+                    <tr>
+                        <td>img2</td>
+                        <td>B Dog</td>
+                        <td>97</td>
+                        <td>11112</td>
+                        <td>Not Dog</td>
+                    </tr>
+              </tbody>
+            </table>
+            <button type="submit">Search</button>
+            <div class="pagination" id="pagebar"></div>
         </div>
     </form>
 </body>
 </html>
 <script>
+    import DataTable from 'datatables.net-dt';
     async function checkLogin(event) {
         event.preventDefault();
         const uname = document.getElementById('uname').value;
@@ -54,8 +77,8 @@
         });
         const result = await response;
         if (result.status == 200) {
-            //document.getElementById("loginForm").style.display = "none";
-            //document.getElementById("searchForm").style.display = "block";
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("searchForm").style.display = "block";
             document.getElementById("loginresult").innerHTML = "Login Successful!";
         } else {
             document.getElementById("loginresult").innerHTML = "Invalid name or email";
@@ -108,15 +131,66 @@
         return row;
     }
 
-    function fillTableContent(event) {
+    // function fillTableContent(event) {
+    //     event.preventDefault();
+    //     const dogArray = searchDogs().resultIds;
+    //     const dogData = getDogData(dogArray);
+    //     const table = document.getElementById("searchtable");
+    //     for (const dog of dogArray) {
+    //         table.appendChild(createRow(dog));
+    //     }
+    // }
+
+    function displayTableContent(curPage, pageSize, dogData) {
         event.preventDefault();
+        const table = document.getElementById("searchTable");
+        const start = (curPage - 1) * pageSize;
+        const end = Math.min(start + pageSize, dogData.length);
         const dogArray = searchDogs().resultIds;
         const dogData = getDogData(dogArray);
-        const table = document.getElementById("searchtable");
-        for (const dog of dogArray) {
-            table.appendChild(createRow(dog));
+        for (let i = start; i < end; i++) {
+            table.appendChild(createRow(dogData[i]));
+        }
+        updatePagination(curPage, pageSize, dogData.length);
+    }
+    function updatePagination(curPage, pageSize, totalItems) {
+        const pagebar = document.getElementById("pagebar");
+        pagebar.innerHTML = ""; // Clear previous pagination
+        const totalPages = Math.ceil(totalItems / pageSize);
+        for (let i = 1; i <= totalPages; i++) {
+            const button = document.createElement("button");
+            button.innerHTML = i;
+            button.onclick = function() {
+                displayTableContent(i, pageSize, dogData);
+            };
+            if (i === curPage) {
+                button.disabled = true; // Disable the current page button
+            }
+            pagebar.appendChild(button);
         }
     }
     document.getElementById('loginForm').addEventListener('submit', checkLogin);
-    document.getElementById('searchForm').addEventListener('submit', fillTableContent);
+    document.getElementById('searchForm').addEventListener('submit', displayTableContent);
+    let searchTable = new DataTable('#searchTable', {
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: false,
+        autoWidth: false,
+        columns: [
+            { title: "Image", data: "image" },
+            { title: "Name", data: "name" },
+            { title: "Age", data: "age" },
+            { title: "Zip Code", data: "zipCode" },
+            { title: "Breed", data: "breed" }
+        ],
+        columnDefs: [
+            { targets: 0, orderable: false, searchable: false },
+            { targets: 1, orderable: true, searchable: true },
+            { targets: 2, orderable: true, searchable: true },
+            { targets: 3, orderable: true, searchable: true },
+            { targets: 4, orderable: true, searchable: true }
+        ]
+    })
+    displayContentTable(1, 10, dogData);
 </script>
