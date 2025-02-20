@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="js/jquery-3.7.1.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.3.3/css/searchPanes.dataTables.min.css"/>
+    <script src="https://cdn.datatables.net/searchpanes/2.3.3/js/dataTables.searchPanes.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let favoriteDogs = [];
+            let searchTable = new DataTable('#searchTable', {
+                select: true,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                autoWidth: false,
+                columnDefs: [
+                    { targets: 0, orderable: false, render:    
+                        function (data){
+                            return '<input type="checkbox" id="favCheck" value="' + $('<div/>').text(data).html() + '">';
+                        }
+                    },
+                    { targets: 1, orderable: false }, 
+                    { targets: 2, orderable: true },
+                    { targets: 3, orderable: true }, 
+                    { targets: 4, orderable: true },
+                    { targets: 5, orderable: true }  
+                ],
+            });
+            // $("input:checkbox[name=favcheck]:checked").each(function(){
+            //     favoriteDogs.push();
+            // })
+            
+        });
+    </script>
     <title>Fetch Login</title>
 
 </head>
@@ -30,6 +60,7 @@
             <table id="searchTable" class="display">
                 <thead>
                     <tr>
+                        <th>Favorite</th>
                         <th>Image</th>
                         <th>Name</th>
                         <th>Age</th>
@@ -39,6 +70,7 @@
                 </thead>
                 <tbody>
                     <tr>
+                        <td></td>
                         <td>img</td>
                         <td>A Dog</td>
                         <td>99</td>
@@ -46,6 +78,7 @@
                         <td>Dog</td>
                     </tr>
                     <tr>
+                        <td></td>
                         <td>img2</td>
                         <td>B Dog</td>
                         <td>97</td>
@@ -53,15 +86,41 @@
                         <td>Not Dog</td>
                     </tr>
               </tbody>
+              <tfoot>
+                </tfoot>
             </table>
-            <button type="submit">Search</button>
+            <button type="submit" id="addFavBtn">Add to Favorites</button>
+            <button type="submit" id="searchBtn">Search</button>
             <div class="pagination" id="pagebar"></div>
         </div>
     </form>
+    
+    
+    <h1>Favorites</h1>  
+    <form id="favForm">
+        <div class="container" id="favbox">  
+            <table id="favTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Zip Code</th>
+                        <th>Breed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </form>
+    <button type="submit" id="matchBtn">Match Me</button>
+    <button type="submit" id="removeBtn">Remove from Favorites</button>
+
 </body>
 </html>
 <script>
-    import DataTable from 'datatables.net-dt';
+    //import DataTable from 'datatables.net-dt';
     async function checkLogin(event) {
         event.preventDefault();
         const uname = document.getElementById('uname').value;
@@ -141,56 +200,88 @@
     //     }
     // }
 
-    function displayTableContent(curPage, pageSize, dogData) {
+    function displayTableContent(curPage, pageSize) {
         event.preventDefault();
         const table = document.getElementById("searchTable");
         const start = (curPage - 1) * pageSize;
         const end = Math.min(start + pageSize, dogData.length);
         const dogArray = searchDogs().resultIds;
-        const dogData = getDogData(dogArray);
+        const allDogData = getDogData(dogArray);
         for (let i = start; i < end; i++) {
             table.appendChild(createRow(dogData[i]));
         }
-        updatePagination(curPage, pageSize, dogData.length);
+        //updatePagination(curPage, pageSize, dogData.length);
     }
-    function updatePagination(curPage, pageSize, totalItems) {
-        const pagebar = document.getElementById("pagebar");
-        pagebar.innerHTML = ""; // Clear previous pagination
-        const totalPages = Math.ceil(totalItems / pageSize);
-        for (let i = 1; i <= totalPages; i++) {
-            const button = document.createElement("button");
-            button.innerHTML = i;
-            button.onclick = function() {
-                displayTableContent(i, pageSize, dogData);
-            };
-            if (i === curPage) {
-                button.disabled = true; // Disable the current page button
-            }
-            pagebar.appendChild(button);
-        }
+
+    function updateFavTable(dogDataArray) {
+        const favTable = document.getElementById('favTable').getElementsByTagName('tbody')[0];
+        favTable.innerHTML = ''; // Clear existing rows
+        dogDataArray.forEach(dogData => {
+            const row = createRow(dogData);
+            favTable.appendChild(row);
+        });
     }
+    // function updatePagination(curPage, pageSize, totalItems) {
+    //     const pagebar = document.getElementById("pagebar");
+    //     pagebar.innerHTML = ""; // Clear previous pagination
+    //     const totalPages = Math.ceil(totalItems / pageSize);
+    //     for (let i = 1; i <= totalPages; i++) {
+    //         const button = document.createElement("button");
+    //         button.innerHTML = i;
+    //         button.onclick = function() {
+    //             displayTableContent(i, pageSize, dogData);
+    //         };
+    //         if (i === curPage) {
+    //             button.disabled = true; // Disable the current page button
+    //         }
+    //         pagebar.appendChild(button);
+    //     }
+    // }
     document.getElementById('loginForm').addEventListener('submit', checkLogin);
-    document.getElementById('searchForm').addEventListener('submit', displayTableContent);
-    let searchTable = new DataTable('#searchTable', {
-        paging: true,
-        searching: true,
-        ordering: true,
-        info: false,
-        autoWidth: false,
-        columns: [
-            { title: "Image", data: "image" },
-            { title: "Name", data: "name" },
-            { title: "Age", data: "age" },
-            { title: "Zip Code", data: "zipCode" },
-            { title: "Breed", data: "breed" }
-        ],
-        columnDefs: [
-            { targets: 0, orderable: false, searchable: false },
-            { targets: 1, orderable: true, searchable: true },
-            { targets: 2, orderable: true, searchable: true },
-            { targets: 3, orderable: true, searchable: true },
-            { targets: 4, orderable: true, searchable: true }
-        ]
-    })
-    displayContentTable(1, 10, dogData);
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const button = event.submitter.id;
+
+        if (button === "addFavBtn") {
+            const selectedDogs = [];
+            $('#searchTable tbody input[type="checkbox"]:checked').each(function() {
+                const row = $(this).closest('tr');
+                const name = row.find('td:eq(2)').text();
+                selectedDogs.push(row);
+            });
+            document.getElementById('loginresult').innerHTML = selectedDogs.join(', ');
+        }
+    });
+        
+        // if (button === "addFavBtn") {
+        //     const selectedDogs = [];
+        //     const currentRow = 
+        //     searchTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+        //         if (this.row(rowIdx).column(0).checkboxes.selected){
+        //             selectedDogs.push(this.row(rowIdx).column(3).data());
+        //         }
+                
+        //         // ... do something with data(), or this.node(), etc
+        //     } );
+            
+            // $("input:checkbox[id=favCheck]:checked").each(function() {
+            //     selectedDogs.push($(this).val());
+            //     document.getElementById('loginresult').innerHTML = searchTable.row((this).val()).data("name");
+            // });
+            // const dognumber = selectedDogs.length;
+            // document.getElementById('loginresult').innerHTML = dognumber;
+            // getDogData(selectedDogs).then(dogData => {
+            //     dogData.forEach(dog => {
+            //         favTable.row.add(createRow(dog)).draw();
+            //     });
+            // });
+    //} 
+        // else if (button === "searchBtn") {
+        //     displayTableContent(1, 10);
+        // }
+        // });
+        
+    
+    
+    //displayContentTable(1, 10, dogData);
 </script>
