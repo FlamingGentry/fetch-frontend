@@ -28,12 +28,31 @@
                     { targets: 2, orderable: true },
                     { targets: 3, orderable: true }, 
                     { targets: 4, orderable: true },
-                    { targets: 5, orderable: true }  
+                    { targets: 5, orderable: true },
+                    { targets: 6, visible: false }
                 ],
             });
-            // $("input:checkbox[name=favcheck]:checked").each(function(){
-            //     favoriteDogs.push();
-            // })
+            let favTable = new DataTable('#favTable', {
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                autoWidth: false,
+                columnDefs: [
+                    {
+                        targets: 0, orderable: false, render:
+                            function (data) {
+                                return '<input type="checkbox" id="unfavCheck" value="' + $('<div/>').text(data).html() + '">';
+                            }
+                    },
+                    { targets: 1, orderable: false },
+                    { targets: 2, orderable: true },
+                    { targets: 3, orderable: true },
+                    { targets: 4, orderable: true },
+                    { targets: 5, orderable: true },
+                    { targets: 6, visible: false }
+                ],
+            });
             
         });
     </script>
@@ -56,6 +75,13 @@
         </div>
     </form>
     <form id="searchForm">
+        <div class="container" id="filterBox">
+            <label for="breed">Breed</label>
+            <select id="breedSelect">
+            </select>
+            <label for="zipcode">Zip Codes</label>
+            <input type="text" id="zipCode" placeholder="Enter Zip Code">
+        </div>
         <div class="container" id="searchbox">
             <table id="searchTable" class="display">
                 <thead>
@@ -66,61 +92,84 @@
                         <th>Age</th>
                         <th>Zip Code</th>
                         <th>Breed</th>
-                      </tr>
+                        <th>ID</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td></td>
                         <td>img</td>
-                        <td>A Dog</td>
+                        <td>ADog</td>
                         <td>99</td>
                         <td>11111</td>
                         <td>Dog</td>
+                        <td>1</td>
                     </tr>
                     <tr>
                         <td></td>
                         <td>img2</td>
-                        <td>B Dog</td>
+                        <td>BDog</td>
                         <td>97</td>
                         <td>11112</td>
-                        <td>Not Dog</td>
+                        <td>NotDog</td>
+                        <td>2</td>
                     </tr>
-              </tbody>
-              <tfoot>
+                </tbody>
+                <tfoot>
                 </tfoot>
             </table>
             <button type="submit" id="addFavBtn">Add to Favorites</button>
             <button type="submit" id="searchBtn">Search</button>
             <div class="pagination" id="pagebar"></div>
         </div>
-    </form>
+</form>
     
     
     <h1>Favorites</h1>  
     <form id="favForm">
-        <div class="container" id="favbox">  
+        <div class="container" id="favbox">
             <table id="favTable" class="display">
                 <thead>
                     <tr>
+                        <th>Unfavorite</th>
                         <th>Image</th>
                         <th>Name</th>
                         <th>Age</th>
                         <th>Zip Code</th>
                         <th>Breed</th>
+                        <th>ID</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <tr>
+                        <td></td>
+                        <td>img3</td>
+                        <td>CDog</td>
+                        <td>9</td>
+                        <td>99999</td>
+                        <td>Cat</td>
+                        <td>3</td>
+                    </tr>
                 </tbody>
             </table>
+            <button type="submit" id="matchBtn">Match Me</button>
+            <button type="submit" id="removeBtn">Remove from Favorites</button>
         </div>
     </form>
-    <button type="submit" id="matchBtn">Match Me</button>
-    <button type="submit" id="removeBtn">Remove from Favorites</button>
+    
 
 </body>
 </html>
 <script>
     //import DataTable from 'datatables.net-dt';
+    function DogData(image, name, age, zip, breed, id) {
+        this.image = image;
+        this.name = name;
+        this.age = age;
+        this.zip = zip;
+        this.breed = breed;
+        this.id = id;
+    }
     async function checkLogin(event) {
         event.preventDefault();
         const uname = document.getElementById('uname').value;
@@ -139,6 +188,13 @@
             document.getElementById("loginForm").style.display = "none";
             document.getElementById("searchForm").style.display = "block";
             document.getElementById("loginresult").innerHTML = "Login Successful!";
+            const breeds = await getDogBreeds();
+            const breedSelect = document.getElementById('breedSelect');
+            breeds.forEach(breed => {
+                const option = document.createElement('option');
+                option.text = breed;
+                breedSelect.add(option);
+            });
         } else {
             document.getElementById("loginresult").innerHTML = "Invalid name or email";
         }
@@ -179,38 +235,22 @@
 
     }
 
-    function createRow(dogData){
-        const row = document.createElement("tr");
-        const keys = Object.keys(dogData);
-        for (const key of keys) {
-            const cell = document.createElement("td");
-            cell.innerHTML = dogData[key];
-            row.appendChild(cell);
+    async function getDogBreeds() {
+        const dogUrl = "https://frontend-take-home-service.fetch.com/dogs/breeds";
+        const response = await fetch(dogUrl, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache': 'no-cache'
+            },
+            method: 'GET',
+            credentials: 'include',
+        })
+        const result = await response;
+        if (result.status !== 200) {
+            throw new Error("Failed to fetch data");
         }
-        return row;
-    }
+        return result.json();
 
-    // function fillTableContent(event) {
-    //     event.preventDefault();
-    //     const dogArray = searchDogs().resultIds;
-    //     const dogData = getDogData(dogArray);
-    //     const table = document.getElementById("searchtable");
-    //     for (const dog of dogArray) {
-    //         table.appendChild(createRow(dog));
-    //     }
-    // }
-
-    function displayTableContent(curPage, pageSize) {
-        event.preventDefault();
-        const table = document.getElementById("searchTable");
-        const start = (curPage - 1) * pageSize;
-        const end = Math.min(start + pageSize, dogData.length);
-        const dogArray = searchDogs().resultIds;
-        const allDogData = getDogData(dogArray);
-        for (let i = start; i < end; i++) {
-            table.appendChild(createRow(dogData[i]));
-        }
-        //updatePagination(curPage, pageSize, dogData.length);
     }
 
     function updateFavTable(dogDataArray) {
@@ -221,22 +261,6 @@
             favTable.appendChild(row);
         });
     }
-    // function updatePagination(curPage, pageSize, totalItems) {
-    //     const pagebar = document.getElementById("pagebar");
-    //     pagebar.innerHTML = ""; // Clear previous pagination
-    //     const totalPages = Math.ceil(totalItems / pageSize);
-    //     for (let i = 1; i <= totalPages; i++) {
-    //         const button = document.createElement("button");
-    //         button.innerHTML = i;
-    //         button.onclick = function() {
-    //             displayTableContent(i, pageSize, dogData);
-    //         };
-    //         if (i === curPage) {
-    //             button.disabled = true; // Disable the current page button
-    //         }
-    //         pagebar.appendChild(button);
-    //     }
-    // }
     document.getElementById('loginForm').addEventListener('submit', checkLogin);
     document.getElementById('searchForm').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -246,42 +270,27 @@
             const selectedDogs = [];
             $('#searchTable tbody input[type="checkbox"]:checked').each(function() {
                 const row = $(this).closest('tr');
-                const name = row.find('td:eq(2)').text();
-                selectedDogs.push(row);
+                const rowData = $('#searchTable').DataTable().row(row.index()).data();
+                console.log("Row found: " + $('#searchTable').DataTable().row(row.index()).data() + " " + row.index());
+                console.log("Row data: " + rowData);
+                $('#favTable').DataTable().row.add(rowData).draw();
             });
-            document.getElementById('loginresult').innerHTML = selectedDogs.join(', ');
+        }
+
+    });
+    document.getElementById('favForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const button = event.submitter.id;
+
+        if (button === "removeBtn") {
+            $('#favTable tbody input[type="checkbox"]:checked').each(function () {
+                $(this).prop('checked', false);
+                const row = $(this).closest('tr');
+                const rowData = $('#favTable').DataTable().row(row.index()).data();
+                console.log("FavRow found: " + $('#favTable').DataTable().row(row.index()).data() + " " + row.index());
+                console.log("FavRow data: " + rowData);
+                $('#favTable').DataTable().row(row.index()).remove().draw();
+            });
         }
     });
-        
-        // if (button === "addFavBtn") {
-        //     const selectedDogs = [];
-        //     const currentRow = 
-        //     searchTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
-        //         if (this.row(rowIdx).column(0).checkboxes.selected){
-        //             selectedDogs.push(this.row(rowIdx).column(3).data());
-        //         }
-                
-        //         // ... do something with data(), or this.node(), etc
-        //     } );
-            
-            // $("input:checkbox[id=favCheck]:checked").each(function() {
-            //     selectedDogs.push($(this).val());
-            //     document.getElementById('loginresult').innerHTML = searchTable.row((this).val()).data("name");
-            // });
-            // const dognumber = selectedDogs.length;
-            // document.getElementById('loginresult').innerHTML = dognumber;
-            // getDogData(selectedDogs).then(dogData => {
-            //     dogData.forEach(dog => {
-            //         favTable.row.add(createRow(dog)).draw();
-            //     });
-            // });
-    //} 
-        // else if (button === "searchBtn") {
-        //     displayTableContent(1, 10);
-        // }
-        // });
-        
-    
-    
-    //displayContentTable(1, 10, dogData);
 </script>
