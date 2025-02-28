@@ -85,8 +85,25 @@
             <button type="button" id="breedClear">Clear Breeds</button>
             <p id="ziparray">Zip Codes: </p>
             <button type="button" id="zipClear">Clear Zips</button>
+            <p>Minimum Age (yr)</p>
             <input type="range" min="0" max="100" value="1" class="slider" id="ageMin">
+            <span id="ageMinValue">1</span>
+            <script>
+                document.getElementById('ageMin').addEventListener('input', function() {
+                    document.getElementById('ageMinValue').innerText = this.value;
+                });
+            </script>
+            <p>Maximum Age (yr)</p>
             <input type="range" min="0" max="100" value="10" class="slider" id="ageMax">
+            <span id="ageMaxValue">10</span>
+            <script>
+                document.getElementById('ageMax').addEventListener('input', function() {
+                    if (parseInt(this.value) < parseInt(document.getElementById('ageMin').value)) {
+                        this.value = document.getElementById('ageMin').value;
+                    }
+                    document.getElementById('ageMaxValue').innerText = this.value;
+                });
+            </script>
         </div>
         <div class="container" id="searchbox">
             <table id="searchTable" class="display">
@@ -294,17 +311,16 @@
         else if (button === "searchBtn") {
             const breed = document.getElementById('breedSelect').value;
             const zipCode = document.getElementById('zipCode').value;
-            searchDogs().then(data => {
-                const filteredData = data.filter(dog => {
-                    return (dog.breed === breed || breed === "") && (dog.zip === zipCode || zipCode === "");
-                });
-                const searchTable = document.getElementById('searchTable').getElementsByTagName('tbody')[0];
-                searchTable.innerHTML = '';
-                filteredData.forEach(dogData => {
-                    const row = createRow(dogData);
-                    searchTable.appendChild(row);
-                });
-            });
+            const dogIdArray = searchDogs().resultIds;
+            const dogDataArray = getDogData(dogIdArray);
+            console.log("DogDataArray: " + dogDataArray);
+            // const searchTable = document.getElementById('searchTable').getElementsByTagName('tbody')[0];
+            // searchTable.innerHTML = '';
+            // dogDataArray.forEach(dogObj => {
+            //     const row = createRow(dogObj);
+            //     searchTable.appendChild(row);
+            // });
+
         }
 
     });
