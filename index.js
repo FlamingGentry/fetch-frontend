@@ -67,10 +67,6 @@ async function searchDogs() {
 
 async function getDogData(dogIdArray){
     const dogUrl = "https://frontend-take-home-service.fetch.com/dogs";
-    console.log("DogIdArray: " + dogIdArray);
-    console.log("DogIdArray as JSON: " + JSON.stringify(dogIdArray));
-    // var request = postRequest.clone();
-    // request.body = JSON.stringify(dogIdArray);
     const response = await fetch(dogUrl, {
         headers: {
             'Content-Type': 'application/json',
@@ -140,7 +136,7 @@ async function getDogBreeds() {
 
 function updateFavTable(dogDataArray) {
     const favTable = document.getElementById('favTable').getElementsByTagName('tbody')[0];
-    favTable.innerHTML = ''; // Clear existing rows
+    favTable.innerHTML = '';
     dogDataArray.forEach(dogData => {
         const row = createRow(dogData);
         favTable.appendChild(row);

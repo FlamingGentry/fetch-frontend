@@ -121,8 +121,6 @@
         var zipArray = [];
         var searchTable;
         var favTable;
-        var postRequest;
-        var getRequest;
         $(document).ready(function() {
             searchTable = new DataTable('#searchTable', {
                 select: true,
@@ -167,23 +165,6 @@
                     { targets: 6, visible: false }
                 ],
                 order: [[ 5, "asc" ]]
-            });
-            postRequest = new Request({
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Cache': 'no-cache'
-                },
-                method: 'POST',
-                credentials: 'include',
-                body: {}
-            });
-            getRequest = new Request({
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Cache': 'no-cache'
-                },
-                method: 'GET',
-                credentials: 'include',
             });
             document.getElementById('loginForm').addEventListener('submit', checkLogin);
             document.getElementById('searchForm').addEventListener('submit', function(event) {
