@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<script type="text/javascript" src="index.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,59 +9,11 @@
     <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.3.3/css/searchPanes.dataTables.min.css"/>
     <script src="https://cdn.datatables.net/searchpanes/2.3.3/js/dataTables.searchPanes.min.js"></script>
-    <script>
-        // $(document).ready(function() {
-        //     let favoriteDogs = [];
-        //     let searchTable = new DataTable('#searchTable', {
-        //         select: true,
-        //         paging: true,
-        //         searching: true,
-        //         ordering: true,
-        //         info: false,
-        //         autoWidth: false,
-        //         columnDefs: [
-        //             { targets: 0, orderable: false, render:    
-        //                 function (data){
-        //                     return '<input type="checkbox" id="favCheck" value="' + $('<div/>').text(data).html() + '">';
-        //                 }
-        //             },
-        //             { targets: 1, orderable: false }, 
-        //             { targets: 2, orderable: true },
-        //             { targets: 3, orderable: true }, 
-        //             { targets: 4, orderable: true },
-        //             { targets: 5, orderable: true },
-        //             { targets: 6, visible: false }
-        //         ],
-        //     });
-        //     let favTable = new DataTable('#favTable', {
-        //         paging: true,
-        //         searching: true,
-        //         ordering: true,
-        //         info: false,
-        //         autoWidth: false,
-        //         columnDefs: [
-        //             {
-        //                 targets: 0, orderable: false, render:
-        //                     function (data) {
-        //                         return '<input type="checkbox" id="unfavCheck" value="' + $('<div/>').text(data).html() + '">';
-        //                     }
-        //             },
-        //             { targets: 1, orderable: false },
-        //             { targets: 2, orderable: true },
-        //             { targets: 3, orderable: true },
-        //             { targets: 4, orderable: true },
-        //             { targets: 5, orderable: true },
-        //             { targets: 6, visible: false }
-        //         ],
-        //     });
-            
-        // });
-    </script>
     <title>Fetch Login</title>
 
 </head>
 <body>
-    <script type="text/javascript" src="js/logincheck.js"></script>
+    
     <h1>Fetch Search Page</h1>
     <p id="loginresult">Please Login</p>
     <form id="loginForm">
@@ -163,315 +116,165 @@
             <button type="submit" id="removeBtn">Remove from Favorites</button>
         </div>
     </form>
-    
+    <script>
+        var breedArray = [];
+        var zipArray = [];
+        var searchTable;
+        var favTable;
+        var postRequest;
+        var getRequest;
+        $(document).ready(function() {
+            searchTable = new DataTable('#searchTable', {
+                select: true,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                autoWidth: false,
+                columnDefs: [
+                    { targets: 0, orderable: false, render:    
+                        function (data){
+                            return '<input type="checkbox" id="favCheck" value="' + $('<div/>').text(data).html() + '">';
+                        }
+                    },
+                    { targets: 1, orderable: false }, 
+                    { targets: 2, orderable: true },
+                    { targets: 3, orderable: true }, 
+                    { targets: 4, orderable: true },
+                    { targets: 5, orderable: true },
+                    { targets: 6, visible: false }
+                ],
+                order: [[ 5, "asc" ]]
+            });
+            favTable = new DataTable('#favTable', {
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                autoWidth: false,
+                columnDefs: [
+                    {
+                        targets: 0, orderable: false, render:
+                            function (data) {
+                                return '<input type="checkbox" id="unfavCheck" value="' + $('<div/>').text(data).html() + '">';
+                            }
+                    },
+                    { targets: 1, orderable: false },
+                    { targets: 2, orderable: true },
+                    { targets: 3, orderable: true },
+                    { targets: 4, orderable: true },
+                    { targets: 5, orderable: true },
+                    { targets: 6, visible: false }
+                ],
+                order: [[ 5, "asc" ]]
+            });
+            postRequest = new Request({
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache': 'no-cache'
+                },
+                method: 'POST',
+                credentials: 'include',
+                body: {}
+            });
+            getRequest = new Request({
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache': 'no-cache'
+                },
+                method: 'GET',
+                credentials: 'include',
+            });
+            document.getElementById('loginForm').addEventListener('submit', checkLogin);
+            document.getElementById('searchForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const button = event.submitter.id;
 
+                if (button === "addFavBtn") {
+                    var rows = searchTable.rows().count();
+                    console.log("Search Table: " + searchTable.rows().count());
+                    searchTable.$('input[type="checkbox"]:checked').each(function() {
+                        $(this).prop('checked', false);
+                        let row = $(this).closest('tr');
+                        let rowData = searchTable.row(row.index()).data();
+                        favTable.row.add(rowData).draw();
+                    });
+                }
+                else if (button === "searchBtn") {
+                    const breed = document.getElementById('breedSelect').value;
+                    const zipCode = document.getElementById('zipCode').value;
+                    searchDogs().then(data => {
+                        console.log("Dog Data Array: " + JSON.stringify(data.resultIds));
+                        const dogIdArray = data.resultIds;
+                        getDogData(dogIdArray).then(dogDataArray => {
+                            console.log("Dog Data Array: " + JSON.stringify(dogDataArray));
+                            searchTable.clear().draw();
+                            dogDataArray.forEach(dogData => {
+                                var row = createDogRow(dogData);
+                                searchTable.row.add(row).draw();
+                                console.log("RowsSearched: " + searchTable.data().rows().count());
+                            });
+                        }).catch(error => {
+                            console.error("Error fetching dog data:", error);
+                        });
+                    });
+                }
+
+            });
+            document.getElementById('favForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                const button = event.submitter.id;
+
+                if (button === "matchBtn") {
+                    var rows = favTable.rows().count();
+                    console.log("Fav Table: " + favTable.rows().count());
+                    var ids = favTable.column(6).data().toArray();
+                    getDogMatch(ids).then(data => {
+                        getDogData([data.match]).then(dogData => {
+                            console.log("Dog Data Array: " + JSON.stringify(dogData));
+                            document.getElementById('matchImg').src = dogData[0].img;
+                            document.getElementById('matchName').innerText = "Name: " + dogData[0].name;
+                            document.getElementById('matchAge').innerText = "Age: " + dogData[0].age;
+                            document.getElementById('matchZip').innerText = "Zip Code: " + dogData[0].zip_code;
+                            document.getElementById('matchBreed').innerText = "Breed: " + dogData[0].breed;
+                        }).catch(error => {
+                            console.error("Error fetching dog data:", error);
+                        })
+                    });
+                }
+                else if (button === "removeBtn") {
+                    favTable.$('input[type="checkbox"]:checked').each(function () {
+                        $(this).prop('checked', false);
+                        let row = $(this).closest('tr');
+                        favTable.row(row.index()).remove().draw();
+                    });
+                }
+            });
+            document.getElementById('breedAdd').addEventListener('click', function() {
+                var breed = document.getElementById('breedSelect').value;
+                if (!breedArray.includes(breed)) {
+                    breedArray.push(breed);
+                    document.getElementById('breedarray').innerText = "Breeds: " + breedArray.join(", ");
+                }
+            });
+            document.getElementById('zipAdd').addEventListener('click', function() {
+                var zip = document.getElementById('zipCode').value;
+                if (!zipArray.includes(zip)) {
+                    zipArray.push(zip);
+                    document.getElementById('ziparray').innerText = "Zip Codes: " + zipArray.join(", ");
+                }
+            });
+            document.getElementById('breedClear').addEventListener('click', function() {
+                breedArray.length = 0;
+                document.getElementById('breedarray').innerText = "Breeds: ";
+            });
+            document.getElementById('zipClear').addEventListener('click', function() {
+                zipArray.length = 0;
+                document.getElementById('ziparray').innerText = "Zip Codes: ";
+            });
+        })
+
+
+    </script>
 </body>
 </html>
-<script>
-    
-    //import DataTable from 'datatables.net-dt';
-    async function checkLogin(event) {
-        event.preventDefault();
-        let uname = document.getElementById('uname').value;
-        let email = document.getElementById('email').value;
-        var loginRequest = postRequest.clone();
-        loginRequest.body = JSON.stringify({ name: uname, email: email });
-        var response = await fetch('https://frontend-take-home-service.fetch.com/auth/login', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name: uname, email: email })
-        });
-        const result = await response;
-        if (result.status == 200) {
-            document.getElementById("loginForm").style.display = "none";
-            document.getElementById("searchForm").style.display = "block";
-            document.getElementById("loginresult").innerHTML = "Login Successful!";
-            let breeds = await getDogBreeds();
-            let breedSelect = document.getElementById('breedSelect');
-            breeds.forEach(breed => {
-                const option = document.createElement('option');
-                option.text = breed;
-                breedSelect.add(option);
-            });
-        } else {
-            document.getElementById("loginresult").innerHTML = "Invalid name or email";
-        }
-    }
-    async function searchDogs() {
-        let params = new URLSearchParams();
-        if (breedArray.length > 0) {
-            params.append("breeds", breedArray.join(","));
-            console.log("Breeds: " + breedArray.join(","));
-        }
-        if (zipArray.length > 0) {
-            params.append("zipCodes", zipArray.join(","));
-            console.log("Zip Codes: " + zipArray.join(","));
-        }
-        let ageMin = document.getElementById('ageMin').value;
-        let ageMax = document.getElementById('ageMax').value;
-        if (ageMin) {
-            params.append("ageMin", ageMin);
-            console.log("Age Min: " + ageMin);
-        }
-        if (ageMax) {
-            params.append("ageMax", ageMax);
-            console.log("Age Max: " + ageMax);
-        }
-        const dogUrl = "https://frontend-take-home-service.fetch.com/dogs/search?" + params;
-        let response = await fetch(dogUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache': 'no-cache'
-            },
-            method: 'GET',
-            credentials: 'include',
-        });
-        const result = await response;
-        if (result.status !== 200) {
-            throw new Error("Failed to fetch data");
-        }
-        return result.json();
-    }
-
-    async function getDogData(dogIdArray){
-        const dogUrl = "https://frontend-take-home-service.fetch.com/dogs";
-        console.log("DogIdArray: " + dogIdArray);
-        console.log("DogIdArray as JSON: " + JSON.stringify(dogIdArray));
-        // var request = postRequest.clone();
-        // request.body = JSON.stringify(dogIdArray);
-        const response = await fetch(dogUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache': 'no-cache'
-            },
-            method: 'POST',
-            credentials: 'include',
-            body: JSON.stringify(dogIdArray)
-        })
-        const result = await response;
-        if (result.status !== 200) {
-            throw new Error("Failed to fetch data");
-        }
-        return result.json();
-    }
-
-    async function getDogMatch(dogIdArray){
-        const dogUrl = "https://frontend-take-home-service.fetch.com/dogs/match";
-        const response = await fetch(dogUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache': 'no-cache'
-            },
-            method: 'POST',
-            credentials: 'include',
-            body: JSON.stringify(dogIdArray)
-        })
-        const result = await response;
-        if (result.status !== 200) {
-            throw new Error("Failed to fetch data");
-        }
-        return result.json();
-    }
-
-    function createDogRow(dogData) {
-        let row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="checkbox" id="favCheck"></td>
-            <td><img src="${dogData.img}" alt="${dogData.name}" width="100"></td>
-            <td>${dogData.name}</td>
-            <td>${dogData.age}</td>
-            <td>${dogData.zip_code}</td>
-            <td>${dogData.breed}</td>
-            <td style="display:none">${dogData.id}</td>
-        `;
-        return row;
-
-    }
-
-    async function getDogBreeds() {
-        const dogUrl = "https://frontend-take-home-service.fetch.com/dogs/breeds";
-        const response = await fetch(dogUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache': 'no-cache'
-            },
-            method: 'GET',
-            credentials: 'include',
-        })
-        const result = await response;
-        if (result.status !== 200) {
-            throw new Error("Failed to fetch data");
-        }
-        return result.json();
-
-    }
-
-    function updateFavTable(dogDataArray) {
-        const favTable = document.getElementById('favTable').getElementsByTagName('tbody')[0];
-        favTable.innerHTML = ''; // Clear existing rows
-        dogDataArray.forEach(dogData => {
-            const row = createRow(dogData);
-            favTable.appendChild(row);
-        });
-    }
-
-    var breedArray = [];
-    var zipArray = [];
-    var searchTable;
-    var favTable;
-    var postRequest;
-    var getRequest;
-    $(document).ready(function() {
-        searchTable = new DataTable('#searchTable', {
-            select: true,
-            paging: true,
-            searching: true,
-            ordering: true,
-            info: false,
-            autoWidth: false,
-            columnDefs: [
-                { targets: 0, orderable: false, render:    
-                    function (data){
-                        return '<input type="checkbox" id="favCheck" value="' + $('<div/>').text(data).html() + '">';
-                    }
-                },
-                { targets: 1, orderable: false }, 
-                { targets: 2, orderable: true },
-                { targets: 3, orderable: true }, 
-                { targets: 4, orderable: true },
-                { targets: 5, orderable: true },
-                { targets: 6, visible: false }
-            ],
-            order: [[ 5, "asc" ]]
-        });
-        favTable = new DataTable('#favTable', {
-            paging: true,
-            searching: true,
-            ordering: true,
-            info: false,
-            autoWidth: false,
-            columnDefs: [
-                {
-                    targets: 0, orderable: false, render:
-                        function (data) {
-                            return '<input type="checkbox" id="unfavCheck" value="' + $('<div/>').text(data).html() + '">';
-                        }
-                },
-                { targets: 1, orderable: false },
-                { targets: 2, orderable: true },
-                { targets: 3, orderable: true },
-                { targets: 4, orderable: true },
-                { targets: 5, orderable: true },
-                { targets: 6, visible: false }
-            ],
-            order: [[ 5, "asc" ]]
-        });
-        postRequest = new Request({
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache': 'no-cache'
-            },
-            method: 'POST',
-            credentials: 'include',
-            body: {}
-        });
-        getRequest = new Request({
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache': 'no-cache'
-            },
-            method: 'GET',
-            credentials: 'include',
-        });
-        document.getElementById('loginForm').addEventListener('submit', checkLogin);
-        document.getElementById('searchForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const button = event.submitter.id;
-
-            if (button === "addFavBtn") {
-                var rows = searchTable.rows().count();
-                console.log("Search Table: " + searchTable.rows().count());
-                searchTable.$('input[type="checkbox"]:checked').each(function() {
-                    $(this).prop('checked', false);
-                    let row = $(this).closest('tr');
-                    let rowData = searchTable.row(row.index()).data();
-                    favTable.row.add(rowData).draw();
-                });
-            }
-            else if (button === "searchBtn") {
-                const breed = document.getElementById('breedSelect').value;
-                const zipCode = document.getElementById('zipCode').value;
-                searchDogs().then(data => {
-                    console.log("Dog Data Array: " + JSON.stringify(data.resultIds));
-                    const dogIdArray = data.resultIds;
-                    getDogData(dogIdArray).then(dogDataArray => {
-                        console.log("Dog Data Array: " + JSON.stringify(dogDataArray));
-                        searchTable.clear().draw();
-                        dogDataArray.forEach(dogData => {
-                            var row = createDogRow(dogData);
-                            searchTable.row.add(row).draw();
-                            console.log("RowsSearched: " + searchTable.data().rows().count());
-                        });
-                    }).catch(error => {
-                        console.error("Error fetching dog data:", error);
-                    });
-                });
-            }
-
-        });
-        document.getElementById('favForm').addEventListener('submit', function (event) {
-            event.preventDefault();
-            const button = event.submitter.id;
-
-            if (button === "matchBtn") {
-                var rows = favTable.rows().count();
-                console.log("Fav Table: " + favTable.rows().count());
-                var ids = favTable.column(6).data().toArray();
-                getDogMatch(ids).then(data => {
-                    getDogData([data.match]).then(dogData => {
-                        console.log("Dog Data Array: " + JSON.stringify(dogData));
-                        document.getElementById('matchImg').src = dogData[0].img;
-                        document.getElementById('matchName').innerText = "Name: " + dogData[0].name;
-                        document.getElementById('matchAge').innerText = "Age: " + dogData[0].age;
-                        document.getElementById('matchZip').innerText = "Zip Code: " + dogData[0].zip_code;
-                        document.getElementById('matchBreed').innerText = "Breed: " + dogData[0].breed;
-                    }).catch(error => {
-                        console.error("Error fetching dog data:", error);
-                    })
-                });
-            }
-            else if (button === "removeBtn") {
-                favTable.$('input[type="checkbox"]:checked').each(function () {
-                    $(this).prop('checked', false);
-                    favTable.row(row.index()).remove().draw();
-                });
-            }
-        });
-        document.getElementById('breedAdd').addEventListener('click', function() {
-            var breed = document.getElementById('breedSelect').value;
-            if (!breedArray.includes(breed)) {
-                breedArray.push(breed);
-                document.getElementById('breedarray').innerText = "Breeds: " + breedArray.join(", ");
-            }
-        });
-        document.getElementById('zipAdd').addEventListener('click', function() {
-            var zip = document.getElementById('zipCode').value;
-            if (!zipArray.includes(zip)) {
-                zipArray.push(zip);
-                document.getElementById('ziparray').innerText = "Zip Codes: " + zipArray.join(", ");
-            }
-        });
-        document.getElementById('breedClear').addEventListener('click', function() {
-            breedArray.length = 0;
-            document.getElementById('breedarray').innerText = "Breeds: ";
-        });
-        document.getElementById('zipClear').addEventListener('click', function() {
-            zipArray.length = 0;
-            document.getElementById('ziparray').innerText = "Zip Codes: ";
-        });
-    })
-    
-</script>
