@@ -1,25 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
+<script type="text/javascript" src="index.js"></script>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My GitHub Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.3.3/css/searchPanes.dataTables.min.css"/>
+    <script src="https://cdn.datatables.net/searchpanes/2.3.3/js/dataTables.searchPanes.min.js"></script>
+    <title>Fetch Login</title>
+
 </head>
 <body>
-<h1>Testing initial Github page function</h1>
-<form action="action_page.php" method="post">
-    <div class="container">
-        <label for="uname"><b>Username</b></label>
-        <input type="text" placeholder="Enter Username" name="uname" required>
     
-        <label for="psw"><b>Password</b></label>
-        <input type="password" placeholder="Enter Password" name="psw" required>
+    <h1>Fetch Search Page</h1>
+    <p id="loginresult">Please Login</p>
+    <form id="loginForm">
+        <div class="container" id="loginbox">
+            <label for="uname"><b>Name</b></label>
+            <input type="text" placeholder="Enter Name" id="uname" required>
+        
+            <label for="email"><b>Email</b></label>
+            <input type="text" placeholder="Enter Email" id="email" required>
+        
+            <button type="submit">Login</button>
+        </div>
+    </form>
+    <form id="searchForm">
+        <div class="container" id="filterBox">
+            <label for="breed">Breed</label>
+            <select id="breedSelect">
+            </select>
+            <button type="button" id="breedAdd">Add Breed Filter</button>
+            <label for="zipcode">Zip Codes</label>
+            <input type="text" id="zipCode" placeholder="Enter Zip Code">
+            <button type="button" id="zipAdd">Add Zip Filter</button>
+            <p id="breedarray">Breeds: </p>
+            <button type="button" id="breedClear">Clear Breeds</button>
+            <p id="ziparray">Zip Codes: </p>
+            <button type="button" id="zipClear">Clear Zips</button>
+            <p>Minimum Age (yr)</p>
+            <input type="range" min="0" max="100" value="1" class="slider" id="ageMin">
+            <span id="ageMinValue">1</span>
+            <script>
+                document.getElementById('ageMin').addEventListener('input', function() {
+                    document.getElementById('ageMinValue').innerText = this.value;
+                });
+            </script>
+            <p>Maximum Age (yr)</p>
+            <input type="range" min="0" max="100" value="10" class="slider" id="ageMax">
+            <span id="ageMaxValue">10</span>
+            <script>
+                document.getElementById('ageMax').addEventListener('input', function() {
+                    if (parseInt(this.value) < parseInt(document.getElementById('ageMin').value)) {
+                        this.value = document.getElementById('ageMin').value;
+                    }
+                    document.getElementById('ageMaxValue').innerText = this.value;
+                });
+            </script>
+        </div>
+        <div class="container" id="searchbox">
+            <table id="searchTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Favorite</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Zip Code</th>
+                        <th>Breed</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                </tfoot>
+            </table>
+            <button type="submit" id="addFavBtn">Add to Favorites</button>
+            <button type="submit" id="searchBtn">Search</button>
+            <div class="pagination" id="pagebar"></div>
+        </div>
+    </form>
+
+    <form id = "matchForm">
+        <h1>Meet Your Match!</h1>
+        <img id="matchImg" src="" alt="Match Image" width="300">
+        <p id="matchName">Name: </p>
+        <p id="matchAge">Age: </p>
+        <p id="matchZip">Zip Code: </p>
+        <p id="matchBreed">Breed: </p>
+    </form>
     
-        <button type="submit">Login</button>
-        <label>
-          <input type="checkbox" checked="checked" name="remember"> Remember me
-        </label>
-      </div>
-</form>
+    
+    <h1>Favorites</h1>  
+    <form id="favForm">
+        <div class="container" id="favbox">
+            <table id="favTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Unfavorite</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Zip Code</th>
+                        <th>Breed</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <button type="submit" id="matchBtn">Match Me</button>
+            <button type="submit" id="removeBtn">Remove from Favorites</button>
+        </div>
+    </form>
+    <script>
+        var breedArray = [];
+        var zipArray = [];
+        var searchTable;
+        var favTable;
+        $(document).ready(function() {
+            searchTable = new DataTable('#searchTable', {
+                select: true,
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                autoWidth: false,
+                columnDefs: [
+                    { targets: 0, orderable: false, render:    
+                        function (data){
+                            return '<input type="checkbox" id="favCheck" value="' + $('<div/>').text(data).html() + '">';
+                        }
+                    },
+                    { targets: 1, orderable: false }, 
+                    { targets: 2, orderable: true },
+                    { targets: 3, orderable: true }, 
+                    { targets: 4, orderable: true },
+                    { targets: 5, orderable: true },
+                    { targets: 6, visible: false }
+                ],
+                order: [[ 5, "asc" ]]
+            });
+            favTable = new DataTable('#favTable', {
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: false,
+                autoWidth: false,
+                columnDefs: [
+                    {
+                        targets: 0, orderable: false, render:
+                            function (data) {
+                                return '<input type="checkbox" id="unfavCheck" value="' + $('<div/>').text(data).html() + '">';
+                            }
+                    },
+                    { targets: 1, orderable: false },
+                    { targets: 2, orderable: true },
+                    { targets: 3, orderable: true },
+                    { targets: 4, orderable: true },
+                    { targets: 5, orderable: true },
+                    { targets: 6, visible: false }
+                ],
+                order: [[ 5, "asc" ]]
+            });
+            document.getElementById('loginForm').addEventListener('submit', checkLogin);
+            document.getElementById('searchForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const button = event.submitter.id;
+
+                if (button === "addFavBtn") {
+                    var rows = searchTable.rows().count();
+                    console.log("Search Table: " + searchTable.rows().count());
+                    searchTable.$('input[type="checkbox"]:checked').each(function() {
+                        $(this).prop('checked', false);
+                        let row = $(this).closest('tr');
+                        let rowData = searchTable.row(row.index()).data();
+                        favTable.row.add(rowData).draw();
+                    });
+                }
+                else if (button === "searchBtn") {
+                    const breed = document.getElementById('breedSelect').value;
+                    const zipCode = document.getElementById('zipCode').value;
+                    searchDogs().then(data => {
+                        console.log("Dog Data Array: " + JSON.stringify(data.resultIds));
+                        const dogIdArray = data.resultIds;
+                        getDogData(dogIdArray).then(dogDataArray => {
+                            console.log("Dog Data Array: " + JSON.stringify(dogDataArray));
+                            searchTable.clear().draw();
+                            dogDataArray.forEach(dogData => {
+                                var row = createDogRow(dogData);
+                                searchTable.row.add(row).draw();
+                                console.log("RowsSearched: " + searchTable.data().rows().count());
+                            });
+                        }).catch(error => {
+                            console.error("Error fetching dog data:", error);
+                        });
+                    });
+                }
+
+            });
+            document.getElementById('favForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                const button = event.submitter.id;
+
+                if (button === "matchBtn") {
+                    var rows = favTable.rows().count();
+                    console.log("Fav Table: " + favTable.rows().count());
+                    var ids = favTable.column(6).data().toArray();
+                    getDogMatch(ids).then(data => {
+                        getDogData([data.match]).then(dogData => {
+                            console.log("Dog Data Array: " + JSON.stringify(dogData));
+                            document.getElementById('matchImg').src = dogData[0].img;
+                            document.getElementById('matchName').innerText = "Name: " + dogData[0].name;
+                            document.getElementById('matchAge').innerText = "Age: " + dogData[0].age;
+                            document.getElementById('matchZip').innerText = "Zip Code: " + dogData[0].zip_code;
+                            document.getElementById('matchBreed').innerText = "Breed: " + dogData[0].breed;
+                        }).catch(error => {
+                            console.error("Error fetching dog data:", error);
+                        })
+                    });
+                }
+                else if (button === "removeBtn") {
+                    favTable.$('input[type="checkbox"]:checked').each(function () {
+                        $(this).prop('checked', false);
+                        let row = $(this).closest('tr');
+                        favTable.row(row.index()).remove().draw();
+                    });
+                }
+            });
+            document.getElementById('breedAdd').addEventListener('click', function() {
+                var breed = document.getElementById('breedSelect').value;
+                if (!breedArray.includes(breed)) {
+                    breedArray.push(breed);
+                    document.getElementById('breedarray').innerText = "Breeds: " + breedArray.join(", ");
+                }
+            });
+            document.getElementById('zipAdd').addEventListener('click', function() {
+                var zip = document.getElementById('zipCode').value;
+                if (!zipArray.includes(zip)) {
+                    zipArray.push(zip);
+                    document.getElementById('ziparray').innerText = "Zip Codes: " + zipArray.join(", ");
+                }
+            });
+            document.getElementById('breedClear').addEventListener('click', function() {
+                breedArray.length = 0;
+                document.getElementById('breedarray').innerText = "Breeds: ";
+            });
+            document.getElementById('zipClear').addEventListener('click', function() {
+                zipArray.length = 0;
+                document.getElementById('ziparray').innerText = "Zip Codes: ";
+            });
+        })
+
+
+    </script>
 </body>
 </html>
