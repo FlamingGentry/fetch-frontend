@@ -3,8 +3,6 @@ async function checkLogin(event) {
     event.preventDefault();
     let uname = document.getElementById('uname').value;
     let email = document.getElementById('email').value;
-    var loginRequest = postRequest.clone();
-    loginRequest.body = JSON.stringify({ name: uname, email: email });
     var response = await fetch('https://frontend-take-home-service.fetch.com/auth/login', {
         method: 'POST',
         credentials: 'include',
