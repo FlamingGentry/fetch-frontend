@@ -172,28 +172,25 @@
                 const button = event.submitter.id;
 
                 if (button === "addFavBtn") {
-                    var rows = searchTable.rows().count();
-                    console.log("Search Table: " + searchTable.rows().count());
-                    searchTable.$('input[type="checkbox"]:checked').each(function() {
-                        $(this).prop('checked', false);
-                        let row = $(this).closest('tr');
-                        let rowData = searchTable.row(row.index()).data();
-                        favTable.row.add(rowData).draw();
+                    searchTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
+                        var row = this.node();
+                        var data = this.data();
+                        if (row.querySelector('input[type="checkbox"]').checked) {
+                            favTable.row.add(data).draw();
+                            searchTable.row(rowIdx).remove().draw();
+                        }
                     });
                 }
                 else if (button === "searchBtn") {
                     const breed = document.getElementById('breedSelect').value;
                     const zipCode = document.getElementById('zipCode').value;
                     searchDogs().then(data => {
-                        console.log("Dog Data Array: " + JSON.stringify(data.resultIds));
                         const dogIdArray = data.resultIds;
                         getDogData(dogIdArray).then(dogDataArray => {
-                            console.log("Dog Data Array: " + JSON.stringify(dogDataArray));
                             searchTable.clear().draw();
                             dogDataArray.forEach(dogData => {
                                 var row = createDogRow(dogData);
                                 searchTable.row.add(row).draw();
-                                console.log("RowsSearched: " + searchTable.data().rows().count());
                             });
                         }).catch(error => {
                             console.error("Error fetching dog data:", error);
@@ -208,11 +205,9 @@
 
                 if (button === "matchBtn") {
                     var rows = favTable.rows().count();
-                    console.log("Fav Table: " + favTable.rows().count());
                     var ids = favTable.column(6).data().toArray();
                     getDogMatch(ids).then(data => {
                         getDogData([data.match]).then(dogData => {
-                            console.log("Dog Data Array: " + JSON.stringify(dogData));
                             document.getElementById('matchImg').src = dogData[0].img;
                             document.getElementById('matchName').innerText = "Name: " + dogData[0].name;
                             document.getElementById('matchAge').innerText = "Age: " + dogData[0].age;
@@ -224,10 +219,13 @@
                     });
                 }
                 else if (button === "removeBtn") {
-                    favTable.$('input[type="checkbox"]:checked').each(function () {
-                        $(this).prop('checked', false);
-                        let row = $(this).closest('tr');
-                        favTable.row(row.index()).remove().draw();
+                    favTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
+                        var row = this.node();
+                        var data = this.data();
+                        if (row.querySelector('input[type="checkbox"]').checked) {
+                            searchTable.row.add(data).draw();
+                            favTable.row(rowIdx).remove().draw();
+                        }
                     });
                 }
             });

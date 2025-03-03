@@ -1,4 +1,3 @@
-
 async function checkLogin(event) {
     event.preventDefault();
     let uname = document.getElementById('uname').value;
@@ -14,7 +13,6 @@ async function checkLogin(event) {
     const result = await response;
     if (result.status == 200) {
         document.getElementById("loginForm").style.display = "none";
-        document.getElementById("searchForm").style.display = "block";
         document.getElementById("loginresult").innerHTML = "Login Successful!";
         let breeds = await getDogBreeds();
         let breedSelect = document.getElementById('breedSelect');
